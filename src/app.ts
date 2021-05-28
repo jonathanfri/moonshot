@@ -2,7 +2,7 @@ import express, { Express }   from "express"
 import mongoose               from "mongoose"
 import cors                   from "cors"
 import taskRoutes             from "./routes"
-import { initWatcher }        from "./services/screenshoot/master"
+import { initWorkers }        from "./services/screenshoot/master"
 
 // Initiate Express
 const app: Express = express()
@@ -18,5 +18,4 @@ mongoose.connect(uri, options)
   .then(() => app.listen(process.env.EXPRESS_PORT, () => console.log(`Server running on http://localhost:${process.env.EXPRESS_PORT}`)))
   .catch(error => { throw error })
 
-// Initiate Master Service
-initWatcher()
+initWorkers()

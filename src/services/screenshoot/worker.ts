@@ -1,43 +1,51 @@
-import puppeteer from "puppeteer"
-import Task from "../../models/task"
+import puppeteer        from "puppeteer"
+import Task             from "../../models/task"
+import redis            from "redis"
+import { promisify }    from "util"
+
+const subscriber = redis.createClient({ host: process.env.LOCALHOST, port: process.env.REDIS_PORT as unknown as number })
+
+const capture = async (url: string, taskId: string): Promise<void> => 
+{   
+    const folder    = "./captures/"
+    const browser   = await puppeteer.launch()
+    const page      = await browser.newPage()
+    await page.goto(url) 
+    await page.screenshot({ path: folder + taskId + ".png" })
+    await browser.close()       
+}
+
+const runCapture = async (url: string, taskId: string): Promise<void> => 
+{   
+    try 
+    {
+        capture(url, taskId)
+        
+        await Task.findOneAndReplace(
+            { url: url },
+            { url: url, image_path: "fs://" + taskId + ".png", task_id: taskId, status: true }
+        )           
+    } 
+    catch (error) 
+    {
+        throw error
+    }    
+}
+
+interface IMessage { message: string}
+// { url:string, taskId:string }
 
 class Worker 
 {
-    idle: boolean = true
-
-    isIdle() : boolean 
+    constructor ()
     {
-        return this.idle
-    }
-
-    async capture(url: string, taskId: string): Promise<void>
-    {        
-        const folder    = "./captures/"
-        const browser   = await puppeteer.launch()
-        const page      = await browser.newPage()
-        await page.goto(url) 
-        await page.screenshot({ path: folder + taskId + ".png" })
-        await browser.close()   
-    }
-
-    async process(url: string, taskId: string): Promise<void>
-    {
-        try 
+        subscriber.on("message", (channel:string, rawMessage:string) => 
         {
-            this.idle = false           
-            this.capture(url, taskId)
-            
-            await Task.findOneAndReplace(
-                { url: url },
-                { url: url, image_path: "fs://" + taskId + ".png", task_id: taskId, status: true }
-            )
+            const message = JSON.parse(rawMessage)
+            runCapture(message.url, message.taskId)
+        })
 
-            this.idle = true
-        } 
-        catch (error) 
-        {
-            throw error
-        }
+        subscriber.subscribe("notification");
     }
 }
 

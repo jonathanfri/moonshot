@@ -1,20 +1,13 @@
-import Task from "../../models/task"
-import Workers from "./workers"
+import redis from "redis"
+import Worker from "./worker"
 
-const initWatcher = async (): Promise<void> => 
+const publisher = redis.createClient({ host: process.env.LOCALHOST, port: process.env.REDIS_PORT as unknown as number })
+
+const distributeTask = async ( url: string, taskId: string ): Promise<void> => 
 {
     try 
     {  
-        const queue = Task.watch()
-        const workers = new Workers()
-
-        queue.on("change", async(newTask) => 
-        {
-            if(newTask.operationType === "insert")
-            {
-                workers.nextWorker().process(newTask.fullDocument.url, newTask.fullDocument.task_id) 
-            }
-        });             
+        publisher.publish("notification", JSON.stringify({url: url, taskId: taskId }))      
     } 
     catch (error) 
     {
@@ -22,5 +15,21 @@ const initWatcher = async (): Promise<void> =>
     }    
 }
 
+const WORKERS:number = 2
 
-export { initWatcher }
+const initWorkers = async (): Promise<void> => 
+{
+    try 
+    {  
+        for(let i = 0; i < WORKERS; i++)    
+        {
+          new Worker()
+        }
+    } 
+    catch (error) 
+    {
+      throw error
+    }    
+}
+
+export { distributeTask, initWorkers }
