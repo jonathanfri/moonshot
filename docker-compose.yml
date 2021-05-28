@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+    mongo:
+        image: mongo
+        restart: always
+        ports:
+            - 27017:27017
+        environment:
+            MONGO_INITDB_DATABASE: moonshot           
+        command: mongod --port 27017  --replSet rs0 
+        healthcheck:
+            test: test $$(echo "rs.initiate().ok || rs.secondaryOk() || rs.status().ok" | mongo --quiet) -eq 1
+            interval: 10s
+            start_period: 30s
+    
+    mongo-express:
+        image: mongo-express
+        restart: always
+        ports:
+            - 8081:8081                   
+
+    redis:
+        image: "redis:alpine"
+        restart: always
+        ports: 
+            - 6379:6379
