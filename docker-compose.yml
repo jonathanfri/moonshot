@@ -1,5 +1,18 @@
 version: "3.9"
 services:
+    app:
+        image: moonshot
+        build: .
+        command: npm run start
+        volumes:
+        - .:/usr/src
+        - /usr/src/node_modules
+        ports:
+        - "4000:4000"
+        depends_on:
+        - mongo
+        - redis        
+
     mongo:
         image: mongo
         restart: always

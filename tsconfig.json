@@ -8,7 +8,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noImplicitThis": false
+    "noImplicitThis": false,
+    "strictBindCallApply": false
+
   },
   "include": ["src/**/*"],
   "exclude": ["src/types/*.ts", "node_modules", ".vscode"]
