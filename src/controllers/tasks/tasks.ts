@@ -8,6 +8,14 @@ const cache = redis.createClient({ host: process.env.LOCALHOST, port: process.en
 const getAsync = promisify(cache.get).bind(cache)
 const setAsync = promisify(cache.set).bind(cache)
 
+/**
+ * saveScreenshot
+ * 
+ * The controller's method responding to the GET call.
+ * 
+ * @param req 
+ * @param res 
+ */
 const saveScreenshot = async (req: Request, res: Response): Promise<void> => 
 {
     try 

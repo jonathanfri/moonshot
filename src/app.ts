@@ -5,7 +5,7 @@ import taskRoutes             from "./routes"
 import { initWorkers }        from "./services/screenshoot/master"
 
 // Initiate Express
-const app: Express = express()
+export const app: Express = express()
 
 app.use(cors())
 app.use(taskRoutes)
